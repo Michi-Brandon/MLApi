@@ -33,6 +33,7 @@ LABEL_URL = (
     "https://api.mercadolibre.com/shipment_labels?shipment_ids={shipment_id}"
     "&response_type={response_type}"
 )
+PACK_URL = "https://api.mercadolibre.com/packs/{pack_id}"
 
 
 def load_env(path: str = ENV_PATH) -> Dict[str, str]:
@@ -88,19 +89,67 @@ def refresh_access_token(client_id: str, client_secret: str, refresh_token: str)
     return token_info
 
 
-def get_order(order_id: str, access_token: str) -> Dict:
+def get_order(order_id: str, access_token: str) -> tuple[Dict, str]:
     url = ORDER_URL.format(order_id=order_id)
     headers = {"Authorization": f"Bearer {access_token}"}
     raw = http_request("GET", url, headers=headers)
-    return json.loads(raw.decode("utf-8"))
+    return json.loads(raw.decode("utf-8")), url
 
 
 def extract_shipping_id(order: Dict) -> int:
+    # Soporta órdenes y packs: en packs viene en "shipment", en órdenes en "shipping".
     shipping = order.get("shipping") or {}
     shipping_id = shipping.get("id")
     if not shipping_id:
-        raise RuntimeError("El order no tiene shipping_id disponible.")
+        shipment = order.get("shipment") or {}
+        shipping_id = shipment.get("id")
+    if not shipping_id:
+        raise RuntimeError("El order/pack no tiene shipping_id disponible.")
     return shipping_id
+
+
+def get_pack(pack_id: str, access_token: str) -> tuple[Dict, str]:
+    url = PACK_URL.format(pack_id=pack_id)
+    headers = {"Authorization": f"Bearer {access_token}"}
+    raw = http_request("GET", url, headers=headers)
+    return json.loads(raw.decode("utf-8")), url
+
+
+def matches_identifier(order: Dict, identifier: str) -> bool:
+    return str(order.get("id")) == identifier or str(order.get("pack_id")) == identifier
+
+
+def find_order_any(order_identifier: str, access_token: str, seller_id: Optional[str], debug: bool = False):
+    """
+    Busca el pedido intentando (devuelve (order_dict, source, attempts)):
+    1) GET /orders/{order_identifier}
+    2) GET /packs/{order_identifier}
+    attempts incluye url, payload o error de cada paso.
+    """
+    attempts: list[Dict] = []
+
+    # 1) orders/{id}
+    try:
+        order, url = get_order(order_identifier, access_token)
+        attempts.append({"source": "order", "url": url, "payload": order})
+        if matches_identifier(order, order_identifier):
+            return order, "order", attempts
+    except Exception as exc:
+        attempts.append({"source": "order", "url": ORDER_URL.format(order_id=order_identifier), "error": str(exc)})
+
+    # 2) packs/{id}
+    try:
+        pack, url = get_pack(order_identifier, access_token)
+        attempts.append({"source": "pack", "url": url, "payload": pack})
+        if matches_identifier(pack, order_identifier):
+            return pack, "pack", attempts
+    except Exception as exc:
+        attempts.append({"source": "pack", "url": PACK_URL.format(pack_id=order_identifier), "error": str(exc)})
+
+    raise RuntimeError(
+        f"No se encontró la orden usando id/pack_id = {order_identifier}. "
+        "Verifica seller_id y que el id sea correcto."
+    )
 
 
 def download_label(shipment_id: int, access_token: str, response_type: str = "zpl2") -> bytes:
@@ -117,7 +166,7 @@ def build_argparser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description="Cliente sencillo para etiquetas de MercadoLibre.")
     parser.add_argument(
         "--order-id",
-        help="order_id de la venta (por ej. 2000010048750545). Obligatorio salvo --refresh-only.",
+        help="order_id o pack_id de la venta (por ej. 2000010048750545). Obligatorio salvo --refresh-only.",
     )
     parser.add_argument(
         "--save-label",
@@ -139,6 +188,11 @@ def build_argparser() -> argparse.ArgumentParser:
         action="store_true",
         help="Guarda el archivo en la carpeta Descargas del usuario.",
     )
+    parser.add_argument(
+        "--debug-search",
+        action="store_true",
+        help="Guarda las respuestas de los intentos (order, pack, search) para inspección.",
+    )
     return parser
 
 
@@ -148,6 +202,7 @@ def main(argv: Optional[list[str]] = None) -> int:
 
     env = load_env()
     ensure_keys(env, ["ML_CLIENT_ID", "ML_CLIENT_SECRET", "ML_REFRESH_TOKEN"])
+    seller_id = env.get("ML_SELLER_ID")
 
     token_info = refresh_access_token(
         env["ML_CLIENT_ID"], env["ML_CLIENT_SECRET"], env["ML_REFRESH_TOKEN"]
@@ -163,9 +218,17 @@ def main(argv: Optional[list[str]] = None) -> int:
     if not args.order_id:
         parser.error("--order-id es obligatorio a menos que uses --refresh-only.")
 
-    order = get_order(args.order_id, access_token)
+    order, source, attempts = find_order_any(args.order_id, access_token, seller_id, debug=args.debug_search)
     shipping_id = extract_shipping_id(order)
-    print(f"order_id: {args.order_id} -> shipping_id: {shipping_id}")
+    print(f"order_id: {args.order_id} -> shipping_id: {shipping_id} (vía {source})")
+
+    if args.debug_search:
+        for entry in attempts:
+            name = entry.get("source", "unknown")
+            filename = f"debug_{name}_response_{args.order_id}.json"
+            with open(filename, "w", encoding="utf-8") as fh:
+                json.dump(entry, fh, ensure_ascii=False, indent=2)
+            print(f"Guardado debug: {filename}")
 
     label_bytes = download_label(shipping_id, access_token, response_type=args.response_type)
 
