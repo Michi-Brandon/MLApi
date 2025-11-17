@@ -230,7 +230,17 @@ def main(argv: Optional[list[str]] = None) -> int:
                 json.dump(entry, fh, ensure_ascii=False, indent=2)
             print(f"Guardado debug: {filename}")
 
-    label_bytes = download_label(shipping_id, access_token, response_type=args.response_type)
+    try:
+        label_bytes = download_label(shipping_id, access_token, response_type=args.response_type)
+    except RuntimeError as exc:
+        msg = str(exc)
+        if "NOT_PRINTABLE_STATUS" in msg:
+            print(
+                f"No se puede imprimir la etiqueta del shipment {shipping_id}: estado no imprimible "
+                f"(probablemente 'shipped'). Mensaje de la API: {msg}"
+            )
+            return 1
+        raise
 
     if args.save_label:
         save_path = args.save_label

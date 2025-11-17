@@ -1,0 +1,166 @@
+{
+  "source": "order",
+  "url": "https://api.mercadolibre.com/orders/2000013842645442",
+  "payload": {
+    "id": 2000013842645442,
+    "date_created": "2025-11-15T21:38:12.000-04:00",
+    "last_updated": "2025-11-15T21:39:50.000-04:00",
+    "date_closed": "2025-11-15T21:38:16.000-04:00",
+    "pack_id": null,
+    "fulfilled": null,
+    "buying_mode": "buy_equals_pay",
+    "shipping_cost": null,
+    "mediations": [],
+    "total_amount": 15078.0,
+    "paid_amount": 15078.0,
+    "order_items": [
+      {
+        "item": {
+          "id": "MLC1746380137",
+          "title": "Set Doble De Barras Para Cortina Extensible 120 A 200 Cms Ajustable Diámetro 13/16 Mm Terminal Adaptable Bola Color Negro Marca Metalhsa",
+          "category_id": "MLC179581",
+          "variation_id": null,
+          "seller_custom_field": "10311107",
+          "variation_attributes": [],
+          "warranty": "Garantía del vendedor: 2 años",
+          "condition": "new",
+          "seller_sku": "10311107",
+          "global_price": null,
+          "net_weight": null,
+          "user_product_id": "MLCU370266335",
+          "release_date": null,
+          "attributes": [
+            {
+              "id": "ITEM_CONDITION",
+              "values": [
+                {
+                  "id": "2230284"
+                }
+              ]
+            }
+          ]
+        },
+        "quantity": 1,
+        "requested_quantity": {
+          "measure": "unit",
+          "value": 1
+        },
+        "picked_quantity": null,
+        "unit_price": 15078.0,
+        "full_unit_price": 18390.0,
+        "full_unit_price_currency_id": "CLP",
+        "currency_id": "CLP",
+        "manufacturing_days": null,
+        "sale_fee": 3714.0,
+        "listing_type_id": "gold_pro",
+        "base_exchange_rate": null,
+        "base_currency_id": null,
+        "element_id": null,
+        "discounts": null,
+        "bundle": null,
+        "compat_id": null,
+        "stock": {
+          "store_id": null,
+          "node_id": "CLP3843097721"
+        },
+        "kit_instance_id": null
+      }
+    ],
+    "currency_id": "CLP",
+    "payments": [
+      {
+        "id": 133432364121,
+        "order_id": 2000013842645442,
+        "payer_id": 55278051,
+        "collector": {
+          "id": 384309772
+        },
+        "card_id": 9568179216,
+        "reason": "Set Doble De Barras Para Cortina Extensible 120 A 200 Cms Ajustable Diámetro 13/16 Mm Terminal Adaptable Bola Color Negro Marca Metalhsa",
+        "site_id": "MLC",
+        "payment_method_id": "master",
+        "currency_id": "CLP",
+        "installments": 3,
+        "issuer_id": "12400",
+        "atm_transfer_reference": {
+          "transaction_id": null,
+          "company_id": null
+        },
+        "coupon_id": null,
+        "activation_uri": null,
+        "operation_type": "regular_payment",
+        "payment_type": "credit_card",
+        "available_actions": [
+          "refund"
+        ],
+        "status": "approved",
+        "status_code": null,
+        "status_detail": "accredited",
+        "transaction_amount": 15078.0,
+        "transaction_amount_refunded": 0.0,
+        "taxes_amount": 0.0,
+        "shipping_cost": 0.0,
+        "coupon_amount": 368.0,
+        "overpaid_amount": 0.0,
+        "total_paid_amount": 14710.0,
+        "installment_amount": 4903.33,
+        "deferred_period": null,
+        "date_approved": "2025-11-15T21:38:16.000-04:00",
+        "transaction_order_id": null,
+        "date_created": "2025-11-15T21:38:13.000-04:00",
+        "date_last_modified": "2025-11-15T21:38:16.000-04:00",
+        "marketplace_fee": 3714.0,
+        "reference_id": null,
+        "authorization_code": "350924"
+      }
+    ],
+    "shipping": {
+      "id": 45880539067
+    },
+    "status": "paid",
+    "status_detail": null,
+    "tags": [
+      "order_has_discount",
+      "catalog",
+      "paid",
+      "not_delivered"
+    ],
+    "internal_tags": [],
+    "static_tags": [],
+    "feedback": {
+      "seller": null,
+      "buyer": null
+    },
+    "context": {
+      "channel": "marketplace",
+      "site": "MLC",
+      "flows": [
+        "catalog"
+      ]
+    },
+    "seller": {
+      "id": 384309772
+    },
+    "buyer": {
+      "id": 55278051,
+      "nickname": "DRAGONMASTER09",
+      "first_name": "Luis Hernan",
+      "last_name": "Sanchez Ahumada",
+      "billing_info": {
+        "id": "777709058777385952"
+      }
+    },
+    "taxes": {
+      "amount": null,
+      "currency_id": null,
+      "id": null
+    },
+    "cancel_detail": null,
+    "manufacturing_ending_date": null,
+    "order_request": {
+      "change": null,
+      "return": null
+    },
+    "related_orders": null
+  }
+}
